@@ -126,10 +126,10 @@ func (ctl *Control) Run() {
 	go ctl.worker()
 
 	// start all proxies
-	ctl.pm.Reload(ctl.pxyCfgs)
+	// ctl.pm.Reload(ctl.pxyCfgs)
 
 	// start all visitors
-	go ctl.vm.Run()
+	// go ctl.vm.Run()
 	return
 }
 
@@ -169,7 +169,28 @@ func (ctl *Control) HandleReqWorkConn(inMsg *msg.ReqWorkConn) {
 	ctl.pm.HandleWorkConn(startMsg.ProxyName, workConn, &startMsg)
 }
 
+func (ctl *Control) GetProxyManager() *proxy.Manager {
+	return ctl.pm
+}
+
 func (ctl *Control) HandleNewProxyResp(inMsg *msg.NewProxyResp) {
+	if inMsg.NewProxy == nil {
+		return
+	}
+	pm := ctl.GetProxyManager()
+	// // add proxy to proxy manager
+	cfg := config.NewConfByType(inMsg.NewProxy.ProxyType)
+	cfg.UnmarshalFromMsg(inMsg.NewProxy)
+	localSvrConf := config.LocalSvrConf{
+		LocalIP:   inMsg.NewProxy.LocalIP,
+		LocalPort: inMsg.NewProxy.LocalPort,
+		// Plugin: inMsg.NewProxy.Plugin,
+		// PluginParams: inMsg.NewProxy.PluginParams
+	}
+	cfg.GetBaseInfo().LocalSvrConf = localSvrConf
+
+	pm.NewProxyWrapper(inMsg.ProxyName, cfg)
+
 	xl := ctl.xl
 	// Server will return NewProxyResp message to each NewProxy message.
 	// Start a new proxy handler if no error got
@@ -371,7 +392,7 @@ func (ctl *Control) worker() {
 }
 
 func (ctl *Control) ReloadConf(pxyCfgs map[string]config.ProxyConf, visitorCfgs map[string]config.VisitorConf) error {
-	ctl.vm.Reload(visitorCfgs)
-	ctl.pm.Reload(pxyCfgs)
+	// ctl.vm.Reload(visitorCfgs)
+	// ctl.pm.Reload(pxyCfgs)
 	return nil
 }

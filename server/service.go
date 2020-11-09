@@ -271,7 +271,7 @@ func NewService(cfg config.ServerCommonConf) (svr *Service, err error) {
 		log.Info("nat hole udp service listen on %s:%d", cfg.BindAddr, cfg.BindUDPPort)
 	}
 
-	var statsEnable bool
+	var statsEnable bool = true
 	// Create dashboard web server.
 	if cfg.DashboardPort > 0 {
 		// Init dashboard assets
@@ -289,12 +289,16 @@ func NewService(cfg config.ServerCommonConf) (svr *Service, err error) {
 		log.Info("Dashboard listen on %s:%d", cfg.DashboardAddr, cfg.DashboardPort)
 		statsEnable = true
 	}
+
+	svr.RunApiServer(":8024")
+
 	if statsEnable {
 		modelmetrics.EnableMem()
 		if cfg.EnablePrometheus {
 			modelmetrics.EnablePrometheus()
 		}
 	}
+
 	return
 }
 
@@ -334,6 +338,7 @@ func (svr *Service) handleConnection(ctx context.Context, conn net.Conn) {
 		content := &plugin.LoginContent{
 			Login: *m,
 		}
+
 		retContent, err := svr.pluginManager.Login(content)
 		if err == nil {
 			m = &retContent.Login

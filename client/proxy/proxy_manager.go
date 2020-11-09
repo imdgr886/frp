@@ -106,7 +106,6 @@ func (pm *Manager) Reload(pxyCfgs map[string]config.ProxyConf) {
 	xl := xlog.FromContextSafe(pm.ctx)
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-
 	delPxyNames := make([]string, 0)
 	for name, pxy := range pm.proxies {
 		del := false
@@ -142,5 +141,18 @@ func (pm *Manager) Reload(pxyCfgs map[string]config.ProxyConf) {
 	}
 	if len(addPxyNames) > 0 {
 		xl.Info("proxy added: %v", addPxyNames)
+	}
+}
+
+func (pm *Manager) NewProxyWrapper(name string, cfg config.ProxyConf) {
+	xl := xlog.FromContextSafe(pm.ctx)
+	if _, ok := pm.proxies[name]; !ok {
+		pxy := NewWrapper(pm.ctx, cfg, pm.clientCfg, pm.HandleEvent, pm.serverUDPPort)
+		pm.proxies[name] = pxy
+
+		pxy.Start()
+		xl.Info("proxy added: %v", name)
+	} else {
+		xl.Warn("proxy exist: " + name)
 	}
 }

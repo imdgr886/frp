@@ -45,12 +45,15 @@ type ControlManager struct {
 	// controls indexed by run id
 	ctlsByRunID map[string]*Control
 
+	ctlsByKey map[string]*Control
+
 	mu sync.RWMutex
 }
 
 func NewControlManager() *ControlManager {
 	return &ControlManager{
 		ctlsByRunID: make(map[string]*Control),
+		ctlsByKey:   make(map[string]*Control),
 	}
 }
 
@@ -63,6 +66,7 @@ func (cm *ControlManager) Add(runID string, ctl *Control) (oldCtl *Control) {
 		oldCtl.Replaced(ctl)
 	}
 	cm.ctlsByRunID[runID] = ctl
+	cm.ctlsByKey[ctl.clientKey] = ctl
 	return
 }
 
@@ -72,6 +76,7 @@ func (cm *ControlManager) Del(runID string, ctl *Control) {
 	defer cm.mu.Unlock()
 	if c, ok := cm.ctlsByRunID[runID]; ok && c == ctl {
 		delete(cm.ctlsByRunID, runID)
+		delete(cm.ctlsByKey, c.clientKey)
 	}
 }
 
@@ -79,6 +84,13 @@ func (cm *ControlManager) GetByID(runID string) (ctl *Control, ok bool) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 	ctl, ok = cm.ctlsByRunID[runID]
+	return
+}
+
+func (cm *ControlManager) GetByKey(key string) (ctl *Control, ok bool) {
+	cm.mu.RLock()
+	defer cm.mu.RUnlock()
+	ctl, ok = cm.ctlsByKey[key]
 	return
 }
 
@@ -129,6 +141,8 @@ type Control struct {
 
 	// control status
 	status string
+
+	clientKey string
 
 	readerShutdown  *shutdown.Shutdown
 	writerShutdown  *shutdown.Shutdown
@@ -182,6 +196,7 @@ func NewControl(
 		serverCfg:       serverCfg,
 		xl:              xlog.FromContextSafe(ctx),
 		ctx:             ctx,
+		clientKey:       loginMsg.User,
 	}
 }
 
@@ -419,33 +434,12 @@ func (ctl *Control) manager() {
 
 			switch m := rawMsg.(type) {
 			case *msg.NewProxy:
-				content := &plugin.NewProxyContent{
-					User: plugin.UserInfo{
-						User:  ctl.loginMsg.User,
-						Metas: ctl.loginMsg.Metas,
-						RunID: ctl.loginMsg.RunID,
-					},
-					NewProxy: *m,
-				}
-				var remoteAddr string
-				retContent, err := ctl.pluginManager.NewProxy(content)
-				if err == nil {
-					m = &retContent.NewProxy
-					remoteAddr, err = ctl.RegisterProxy(m)
-				}
-
-				// register proxy in this control
 				resp := &msg.NewProxyResp{
 					ProxyName: m.ProxyName,
 				}
-				if err != nil {
-					xl.Warn("new proxy [%s] error: %v", m.ProxyName, err)
-					resp.Error = util.GenerateResponseErrorString(fmt.Sprintf("new proxy [%s] error", m.ProxyName), err, ctl.serverCfg.DetailedErrorsToClient)
-				} else {
-					resp.RemoteAddr = remoteAddr
-					xl.Info("new proxy [%s] success", m.ProxyName)
-					metrics.Server.NewProxy(m.ProxyName, m.ProxyType)
-				}
+
+				// var err error = nil
+				// resp.Error = util.GenerateResponseErrorString("new proxy failed: client is not allowed to register proxy", err, ctl.serverCfg.DetailedErrorsToClient)
 				ctl.sendCh <- resp
 			case *msg.CloseProxy:
 				ctl.CloseProxy(m)
