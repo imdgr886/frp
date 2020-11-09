@@ -104,6 +104,9 @@ type NewProxy struct {
 	HTTPPwd           string            `json:"http_pwd"`
 	HostHeaderRewrite string            `json:"host_header_rewrite"`
 	Headers           map[string]string `json:"headers"`
+	LocalIP           string            `json:"local_ip"`
+	LocalPort         int               `json:"local_port"`
+	ClientKey         string            `json:"client_key"`
 
 	// stcp
 	Sk string `json:"sk"`
@@ -113,9 +116,10 @@ type NewProxy struct {
 }
 
 type NewProxyResp struct {
-	ProxyName  string `json:"proxy_name"`
-	RemoteAddr string `json:"remote_addr"`
-	Error      string `json:"error"`
+	ProxyName  string    `json:"proxy_name"`
+	RemoteAddr string    `json:"remote_addr"`
+	Error      string    `json:"error"`
+	NewProxy   *NewProxy `json:"new_proxy"`
 }
 
 type CloseProxy struct {

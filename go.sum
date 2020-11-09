@@ -29,6 +29,7 @@ github.com/fatedier/beego v0.0.0-20171024143340-6c6a4f5bd5eb h1:wCrNShQidLmvVWn/
 github.com/fatedier/beego v0.0.0-20171024143340-6c6a4f5bd5eb/go.mod h1:wx3gB6dbIfBRcucp94PI9Bt3I0F2c/MyNEWuhzpWiwk=
 github.com/fatedier/golib v0.1.1-0.20200901083111-1f870741e185 h1:2p4W5xYizIYwhiGQgeHOQcRD2O84j0tjD40P6gUCRrk=
 github.com/fatedier/golib v0.1.1-0.20200901083111-1f870741e185/go.mod h1:MUs+IH/MGJNz5Cj2JVJBPZBKw2exON7LzO3HrJHmGiQ=
+github.com/fatedier/golib v0.2.0 h1:8BxiUcjleBlXBYlTNUllD8KZZHaFU/NP/vP0Yu1Fkpg=
 github.com/fatedier/kcp-go v2.0.4-0.20190803094908-fe8645b0a904+incompatible h1:ssXat9YXFvigNge/IkkZvFMn8yeYKFX+uI6wn2mLJ74=
 github.com/fatedier/kcp-go v2.0.4-0.20190803094908-fe8645b0a904+incompatible/go.mod h1:YpCOaxj7vvMThhIQ9AfTOPW2sfztQR5WDfs7AflSy4s=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
